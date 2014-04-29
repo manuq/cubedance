@@ -10,7 +10,7 @@ var backgroundColor = new Color(10, 10, 10);
 var mazeWidth = 20;
 var mazeHeight = 20;
 
-var snakePoints = [[3, 0], [2, 0], [1, 0]];
+var snakePoints = [Point(3, 0, 0), Point(2, 0, 0), Point(1, 0, 0)];
 var snakePointsSorted = [];
 var snakeDirection = 'n';   // n, e, s, w
 var snakeEnlarge = 5;
@@ -28,8 +28,8 @@ var keyAlias = {
 
 function drawSnake() {
   snakePointsSorted.forEach(function (point, i) {
-    iso.add(Shape.Prism(Point(point[0], point[1], 0)).
-            scale(Point(point[0] + 0.5, point[1] + 0.5, 0), 0.7), snakeColor);
+    iso.add(Shape.Prism(point).
+            scale(Point(point.x + 0.5, point.y + 0.5, point.z + 0.5), 0.7), snakeColor);
   });
 }
 
@@ -45,7 +45,7 @@ function draw() {
 }
 
 function sortSnake(pointA, pointB) {
-  return pointB[0] - pointA[0] + pointB[1] - pointA[1];
+  return pointB.x - pointA.x + pointB.y - pointA.y;
 }
 
 function checkWalls() {
@@ -54,8 +54,8 @@ function checkWalls() {
   var forceDirection = null;
   switch (snakeDirection) {
   case 'n':
-    if (newHead[0] > mazeWidth - 1) {
-      if (newHead[1] == 0) {
+    if (newHead.x > mazeWidth - 1) {
+      if (newHead.y == 0) {
         forceDirection = 'w';
       } else {
         forceDirection = 'e';
@@ -63,8 +63,8 @@ function checkWalls() {
     }
     break;
   case 'e':
-    if (newHead[1] < 0) {
-      if (newHead[0] == 0) {
+    if (newHead.y < 0) {
+      if (newHead.x == 0) {
         forceDirection = 'n';
       } else {
         forceDirection = 's';
@@ -72,8 +72,8 @@ function checkWalls() {
     }
     break;
   case 's':
-    if (newHead[0] < 0) {
-      if (newHead[1] == mazeHeight - 1) {
+    if (newHead.x < 0) {
+      if (newHead.y == mazeHeight - 1) {
         forceDirection = 'e';
       } else {
         forceDirection = 'w';
@@ -81,8 +81,8 @@ function checkWalls() {
     }
     break;
   case 'w':
-    if (newHead[1] > mazeHeight - 1) {
-      if (newHead[0] == mazeWidth - 1) {
+    if (newHead.y > mazeHeight - 1) {
+      if (newHead.x == mazeWidth - 1) {
         forceDirection = 's';
       } else {
         forceDirection = 'n';
@@ -100,16 +100,16 @@ function getForward() {
   var newHead;
   switch (snakeDirection) {
   case 'n':
-    newHead = [head[0] + 1, head[1]];
+    newHead = Point(head.x + 1, head.y, 0);
     break;
   case 'e':
-    newHead = [head[0], head[1] - 1];
+    newHead = Point(head.x, head.y - 1, 0);
     break;
   case 's':
-    newHead = [head[0] - 1, head[1]];
+    newHead = Point(head.x - 1, head.y, 0);
     break;
   case 'w':
-    newHead = [head[0], head[1] + 1];
+    newHead = Point(head.x, head.y + 1, 0);
     break;
   }
   return newHead;
@@ -138,7 +138,7 @@ function checkSnakeBite() {
   var tail = snakePoints.slice(0);
   tail.shift();
   return tail.some(function (point) {
-    return (head[0] == point[0] && head[1] == point[1]);
+    return (head.x == point.x && head.y == point.y);
   });
 }
 
@@ -216,7 +216,7 @@ function setupCanvas() {
 }
 
 function setupGame() {
-  snakePoints = [[3, 0], [2, 0], [1, 0]];
+  snakePoints = [Point(3, 0, 0), Point(2, 0, 0), Point(1, 0, 0)];
   snakePointsSorted = [];
   snakeDirection = 'n';   // n, e, s, w
   snakeEnlarge = 5;
