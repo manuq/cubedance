@@ -10,6 +10,7 @@ var backgroundColor = new Color(10, 10, 10);
 var mazeWidth = 20;
 var mazeHeight = 20;
 
+var snake;
 var snakeEnlarge = 5;
 
 var loopSpeed = 50;
@@ -31,15 +32,26 @@ var Snake = function (startPoint, direction) {
   this.direction = direction;
 }
 
-Snake.prototype.forward = function () {
+Snake.prototype.increase = function () {
   var head = this.points[0];
   var newHead = getForwardPoint(head, this.direction);
 
   this.points.unshift(newHead);
-  if (!(loopCount % snakeEnlarge == 0)) {
-    this.points.pop();
-  }
+}
 
+Snake.prototype.decrease = function () {
+  this.points.pop();
+}
+
+Snake.prototype.forward = function () {
+  this.increase();
+
+  if (!(loopCount % snakeEnlarge == 0)) {
+    this.decrease();
+  }
+}
+
+Snake.prototype.updatePointsSorted = function () {
   this.pointsSorted = this.points.slice(0);
   this.pointsSorted.sort(sortPoints);
 }
@@ -101,8 +113,6 @@ Snake.prototype.checkBitesItself = function() {
 }
 
 
-var snake = new Snake(Point(1, 0, 0));
-
 function drawSnake(snake) {
   snake.pointsSorted.forEach(function (point, i) {
     iso.add(Shape.Prism(point).
@@ -147,6 +157,7 @@ function getForwardPoint(point, direction) {
 function updateSnake() {
   snake.turnOnWalls();
   snake.forward();
+  snake.updatePointsSorted();
 }
 
 function restart() {
@@ -223,10 +234,9 @@ function setupCanvas() {
 }
 
 function setupGame() {
-  snake.points = [Point(3, 0, 0), Point(2, 0, 0), Point(1, 0, 0)];
-  snake.pointsSorted = [];
-  snake.direction = 'n';   // n, e, s, w
-  snakeEnlarge = 5;
+  snake = new Snake(Point(1, 0, 0));
+  snake.increase();
+  snake.increase();
 }
 
 function main() {
