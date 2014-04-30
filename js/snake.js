@@ -5,7 +5,18 @@ var Plane = Shape.Plane;
 var Point = Isomer.Point;
 var Color = Isomer.Color;
 
-var snakeColor = new Color(255, 210, 100);
+var color1 = new Color(60, 70, 70);
+var color2 = new Color(255, 210, 100);
+var color3 = new Color(210, 255, 100);
+var color4 = new Color(100, 210, 255);
+var color5 = new Color(255, 100, 120);
+
+var defaultColor = color2;
+
+var colorPattern1 = [color1, color2, color2, color2];
+var colorPattern2 = [color4, color5];
+var colorPattern3 = [color4, color3, color2, color2];
+
 var mazeColor = new Color(35, 35, 40);
 var backgroundColor = new Color(10, 10, 10);
 
@@ -26,11 +37,42 @@ var keyAlias = {
   40: 's'
 };
 
-var Snake = function (startPoint, direction) {
-  direction = direction || 'n';
+function ColorPoint(point, color) {
+  point.color = color;
+  return point;
+}
 
-  this.points = [startPoint];
+var Snake = function (startPoint, direction, colorPattern) {
+  direction = direction || 'n';
+  colorPattern = colorPattern || [defaultColor];
+
+  this.points = [ColorPoint(startPoint, colorPattern[0])];
   this.direction = direction;
+  this.colorPattern = colorPattern;
+  this.colorIdx = 0;
+  this.insert(startPoint);
+}
+
+Snake.prototype.insert = function (point) {
+  var color = this.getColor();
+  var newPoint = ColorPoint(point, color);
+  this.points.unshift(newPoint);
+}
+
+Snake.prototype.setPattern = function (colorPattern) {
+  this.colorPattern = colorPattern;
+  if (this.colorIdx > this.colorPattern.length-1) {
+    this.colorIdx = 0;
+  }
+}
+
+Snake.prototype.getColor = function () {
+  var color = this.colorPattern[this.colorIdx];
+  this.colorIdx += 1;
+  if (this.colorIdx > this.colorPattern.length-1) {
+    this.colorIdx = 0;
+  }
+  return color;
 }
 
 Snake.prototype.increase = function (count) {
@@ -39,7 +81,7 @@ Snake.prototype.increase = function (count) {
   for (i = 0; i < count; i++) {
     var head = this.points[0];
     var newHead = getForwardPoint(head, this.direction);
-    this.points.unshift(newHead);
+    this.insert(newHead);
   }
 }
 
@@ -156,7 +198,7 @@ function drawSnakes() {
   points.forEach(function (point) {
     if (!(isOutsideMaze(point))) {
       iso.add(Shape.Prism(point).
-              scale(Point(point.x + 0.5, point.y + 0.5, point.z + 0.5), 0.7), snakeColor);
+              scale(Point(point.x + 0.5, point.y + 0.5, point.z + 0.5), 0.7), point.color);
     }
   });
 }
@@ -293,17 +335,25 @@ function setupGame() {
   snakeList = [];
 
   var snake1 = new Snake(Point(1, 0, 0));
+  snake1.setPattern(colorPattern1);
   snake1.increase(2);
   snake1.update = behaviour1;
   snakeList.push(snake1);
 
   var snake2 = new Snake(Point(6, 10, 0));
+  snake2.setPattern(colorPattern2);
   snake2.increase(6);
   snake2.update = behaviour2;
   snakeList.push(snake2);
 
-  var snake3 = new Snake(Point(21, 15, 0), 's');
-  snake3.increase(4);
+  var snake2b = new Snake(Point(1, 12, 0));
+  snake2b.setPattern(colorPattern2);
+  snake2b.increase(6);
+  snake2b.update = behaviour2;
+  snakeList.push(snake2b);
+
+  var snake3 = new Snake(Point(61, 15, 0), 's', colorPattern3);
+  snake3.increase(20);
   snake3.update = behaviour3;
   snakeList.push(snake3);
 }
