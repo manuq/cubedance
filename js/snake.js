@@ -4,19 +4,21 @@ var Shape = Isomer.Shape;
 var Plane = Shape.Plane;
 var Point = Isomer.Point;
 var Color = Isomer.Color;
+
 var snakeColor = new Color(255, 210, 100);
 var mazeColor = new Color(35, 35, 40);
 var backgroundColor = new Color(10, 10, 10);
+
 var mazeWidth = 20;
 var mazeHeight = 20;
 
-var snake;
-var snakeBot;
+var snakeList;
 
 var loopSpeed = 50;
 var loopStart = null;
 var loopCount = 0;
 
+var keyboardDirection = null;
 var keyAlias = {
   37: 'w',
   38: 'n',
@@ -64,6 +66,16 @@ Snake.prototype.forwardGrowing = function (growCount, count) {
   if (!(loopCount % growCount == 0)) {
     this.decrease();
   }
+}
+
+Snake.prototype.useKeyboardDirection = function () {
+  if (!keyboardDirection) {
+    return;
+  }
+  if (opossiteDirection(keyboardDirection) == this.direction) {
+    return;
+  }
+  this.direction = keyboardDirection;
 }
 
 Snake.prototype.turnOnWalls = function () {
@@ -133,7 +145,7 @@ Snake.prototype.update = function () {
   // make something!
 }
 
-function drawSnakes(snakeList) {
+function drawSnakes() {
   var points = [];
   snakeList.forEach(function (snake) {
     points = points.concat(snake.points);
@@ -142,8 +154,10 @@ function drawSnakes(snakeList) {
   points.sort(sortPoints);
 
   points.forEach(function (point) {
-    iso.add(Shape.Prism(point).
-            scale(Point(point.x + 0.5, point.y + 0.5, point.z + 0.5), 0.7), snakeColor);
+    if (!(isOutsideMaze(point))) {
+      iso.add(Shape.Prism(point).
+              scale(Point(point.x + 0.5, point.y + 0.5, point.z + 0.5), 0.7), snakeColor);
+    }
   });
 }
 
@@ -155,11 +169,15 @@ function drawMaze() {
 
 function draw() {
   drawMaze();
-  drawSnakes([snake, snake2]);
+  drawSnakes();
 }
 
 function sortPoints(pointA, pointB) {
   return pointB.x - pointA.x + pointB.y - pointA.y;
+}
+
+function isOutsideMaze(point) {
+  return point.x < 0 || point.x > mazeWidth-1 || point.y < 0 || point.y > mazeHeight-1;
 }
 
 function getForwardPoint(point, direction) {
@@ -181,7 +199,7 @@ function getForwardPoint(point, direction) {
   return forwardPoint;
 }
 
-function updateSnakes(snakeList) {
+function updateSnakes() {
   snakeList.forEach(function (snake) {
     snake.update();
   });
@@ -192,7 +210,8 @@ function restart() {
 }
 
 function update() {
-  updateSnakes([snake, snake2]);
+  updateSnakes();
+  keyboardDirection = null;
 }
 
 function step(timestamp) {
@@ -246,11 +265,7 @@ function onKeyDown(event) {
   if (!(event.keyCode in keyAlias)) {
     return;
   }
-  var newDirection = keyAlias[event.keyCode];
-  if (opossiteDirection(newDirection) == snake.direction) {
-    return;
-  }
-  snake.direction = newDirection;
+  keyboardDirection = keyAlias[event.keyCode];
 }
 
 function setupCanvas() {
@@ -258,6 +273,7 @@ function setupCanvas() {
 }
 
 function behaviour1() {
+  this.useKeyboardDirection();
   this.turnOnWalls();
   this.forwardGrowing(5);
   if (this.checkBitesItself()) {
@@ -269,14 +285,27 @@ function behaviour2() {
   this.makeCircles(3);
 }
 
-function setupGame() {
-  snake = new Snake(Point(1, 0, 0));
-  snake.increase(2);
-  snake.update = behaviour1;
+function behaviour3() {
+  this.forward(2);
+}
 
-  snake2 = new Snake(Point(6, 10, 0));
+function setupGame() {
+  snakeList = [];
+
+  var snake1 = new Snake(Point(1, 0, 0));
+  snake1.increase(2);
+  snake1.update = behaviour1;
+  snakeList.push(snake1);
+
+  var snake2 = new Snake(Point(6, 10, 0));
   snake2.increase(6);
   snake2.update = behaviour2;
+  snakeList.push(snake2);
+
+  var snake3 = new Snake(Point(21, 15, 0), 's');
+  snake3.increase(4);
+  snake3.update = behaviour3;
+  snakeList.push(snake3);
 }
 
 function main() {
